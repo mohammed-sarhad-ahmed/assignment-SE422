@@ -32,6 +32,24 @@ public class Main {
                      doesTheFolderExist = true;
 
                      CountedValues countedValues = new CountedValues(syncQ);
+                     new Thread(()->{
+                         try {
+                             while (true){
+                                 String value=syncQ.take();
+                                 if(value.equals("finish")){
+                                     System.out.println("Printing the final result we got from all the counting...");
+                                     System.out.println("The single thread value is "+ countedValues.getSingleThreadCount());
+                                     System.out.println("The four threads value is "+ countedValues.getFourThreadCount());
+                                     System.out.println("The thread pool threads value is "+ countedValues.getPoolThreadCount());
+                                     break;
+                                 }else {
+                                    System.out.println(value);
+                                 }
+                             }
+                         }catch (Exception e){
+                             System.out.println("something went wrong");
+                         }
+                     }).start();
                      Thread t1 = new Thread(new PdfThread(folder, "single thread", countedValues));
                      t1.start();
                      t1.join();
@@ -53,6 +71,7 @@ public class Main {
                          }
                          latch.await();
                          //ends the print method and print final value
+                         syncQ.put("finish");
                      }
                  } else {
                      throw new FileNotFoundException();
