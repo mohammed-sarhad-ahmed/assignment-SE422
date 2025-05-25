@@ -1,4 +1,6 @@
 import java.io.File;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class PdfCount {
     // ChatGPT help us write the next two methods.
@@ -31,16 +33,31 @@ public class PdfCount {
 
 
     private static void incrementByType(String type, CountedValues countedValues) {
-        switch (type.toLowerCase()) {
-            case "single thread":
-                countedValues.incrementSingleThreadCount();
-                break;
-            case "four thread":
-                countedValues.incrementFourThreadCount();
-                break;
-            case "thread pool":
-                countedValues.incrementPoolThreadCount();
-                break;
-        }
+            switch (type.toLowerCase()) {
+                case "single thread":
+                    countedValues.incrementSingleThreadCount();
+                    break;
+                case "four thread":
+                    countedValues.incrementFourThreadCount();
+                    break;
+                case "thread pool":
+                    try {
+                        Resources.lock.lock();
+                        countedValues.incrementPoolThreadCount();
+                        synchronized(Resources.tracker) {
+                            Resources.tracker.notify();
+                            try {
+                                Resources.tracker.wait();
+                            }catch (Exception e){
+                                System.out.println(e.getMessage());
+                            }
+                        }
+                    }finally {
+                        Resources.lock.unlock();
+                    }
+                    break;
+            }
     }
 }
+
+

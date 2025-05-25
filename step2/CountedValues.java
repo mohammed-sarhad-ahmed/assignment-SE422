@@ -8,7 +8,7 @@ public class CountedValues {
     //we only change the counter for the counter related to 4 threads
     private int singleThreadCount;
     private LongAdder fourThreadCount;
-    private int poolThreadCount;
+    private volatile int poolThreadCount;
     private final ReentrantReadWriteLock singleLock;
     private final ReentrantReadWriteLock fourThreadLock;
     private final ReentrantReadWriteLock poolThreadLock;
@@ -85,11 +85,6 @@ public class CountedValues {
            poolThreadLock.writeLock().lock();
            poolThreadCount++;
        }finally {
-           try {
-               syncQ.put("current value for thread pool counter is "+getPoolThreadCount());
-           } catch (InterruptedException e) {
-               System.out.println(e);
-           }
            poolThreadLock.writeLock().unlock();
 
        }
