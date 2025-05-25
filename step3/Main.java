@@ -11,13 +11,11 @@ import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.SynchronousQueue;
 
 
 
 public class Main {
     public static void main(String[] args) {
-        final SynchronousQueue<String> syncQ=new SynchronousQueue<>();
         final Scanner sc = new Scanner(System.in);
 
          boolean doesTheFolderExist = false;
@@ -31,29 +29,13 @@ public class Main {
                  if (folder.isDirectory() && folder.exists()) {
                      doesTheFolderExist = true;
 
-                     CountedValues countedValues = new CountedValues(syncQ);
-                     new Thread(()->{
-                         try {
-                             while (true){
-                                 String value=syncQ.take();
-                                 if(value.equals("finish")){
-                                     System.out.println("Printing the final result we got from all the counting...");
-                                     System.out.println("The single thread value is "+ countedValues.getSingleThreadCount());
-                                     System.out.println("The four threads value is "+ countedValues.getFourThreadCount());
-                                     System.out.println("The thread pool threads value is "+ countedValues.getPoolThreadCount());
-                                     break;
-                                 }else {
-                                    System.out.println(value);
-                                 }
-                             }
-                         }catch (Exception e){
-                             System.out.println("something went wrong");
-                         }
-                     }).start();
+                     CountedValues countedValues = new CountedValues();
+                     PrinterThread printerThread=new PrinterThread(countedValues);
+                     printerThread.start();
                      Thread t1 = new Thread(new PdfThread(folder, "single thread", countedValues));
                      t1.start();
                      t1.join();
-
+                     Event.setActiveThread("Four Thread");
                      Thread[] threads = new Thread[4];
                      for (int i = 0; i < 4; i++) {
                          threads[i] = new Thread(new PdfThread(folder, 4, i + 1, "four thread", countedValues));
@@ -62,16 +44,34 @@ public class Main {
                      for (Thread thread : threads) {
                          thread.join();
                      }
+                     Event.setActiveThread("Thread Pool");
                      int halfOfTheCoresCount = Runtime.getRuntime().availableProcessors() / 2;
-                     CountDownLatch latch = new CountDownLatch(halfOfTheCoresCount);
+                     //we already had this for waiting for all thread pools to finish we renamed it to waitForFinish
+                     // to avoid confusion with the new requirement
+                     CountDownLatch waitForFinish = new CountDownLatch(halfOfTheCoresCount);
+                     //this is the  new requirement
+                     CountDownLatch waitForAllThenStart = new CountDownLatch(halfOfTheCoresCount);
 
                      try (ExecutorService pool = Executors.newFixedThreadPool(halfOfTheCoresCount)) {
                          for (int i = 0; i < halfOfTheCoresCount; i++) {
-                             pool.execute(new PdfThread(folder,halfOfTheCoresCount,i+1,"thread pool",countedValues,latch));
+                             int finalI = i;
+                             new Thread(()->{
+                                 try {
+                                     waitForAllThenStart.await();
+                                     pool.execute(new PdfThread(folder,halfOfTheCoresCount, finalI +1,"thread pool",countedValues,waitForFinish));
+                                 }catch (Exception e){
+                                     System.out.println("something went wrong");
+                                 }
+                             }).start();
+                             waitForAllThenStart.countDown();
                          }
-                         latch.await();
+                         waitForFinish.await();
+                         Event.setActiveThread("done");
                          //ends the print method and print final value
-                         syncQ.put("finish");
+                         Event.changeIsFinished();
+                         synchronized (Resources.tracker){
+                             Resources.tracker.notify();
+                         }
                      }
                  } else {
                      throw new FileNotFoundException();

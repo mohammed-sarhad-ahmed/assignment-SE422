@@ -30,7 +30,8 @@ public class Main {
 
                  if (folder.isDirectory() && folder.exists()) {
                      doesTheFolderExist = true;
-
+                     PrinterThread printerThread=new PrinterThread(syncQ);
+                     printerThread.start();
                      CountedValues countedValues = new CountedValues(syncQ);
                      Thread t1 = new Thread(new PdfThread(folder, "single thread", countedValues));
                      t1.start();
@@ -53,6 +54,8 @@ public class Main {
                          }
                          latch.await();
                          //ends the print method and print final value
+                         syncQ.put("finish");
+
                      }
                  } else {
                      throw new FileNotFoundException();

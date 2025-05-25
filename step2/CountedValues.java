@@ -5,7 +5,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class CountedValues {
 
-    //we only change the counter for the counter related to
+    //we only change the counter for the counter related to 4 threads
     private int singleThreadCount;
     private LongAdder fourThreadCount;
     private int poolThreadCount;
@@ -35,7 +35,7 @@ public class CountedValues {
     public int getPoolThreadCount() {
         try{
             poolThreadLock.readLock().lock();
-            return  poolThreadCount
+            return  poolThreadCount;
         }
         finally {
             poolThreadLock.readLock().unlock();
@@ -52,11 +52,16 @@ public class CountedValues {
         }
     }
 
-    public void incrementSingleThreadCount() {
+    public void incrementSingleThreadCount()  {
        try{
            singleLock.writeLock().lock();
           singleThreadCount++;
        }finally {
+           try {
+               syncQ.put("current value for single thread counter is "+getSingleThreadCount());
+           } catch (InterruptedException e) {
+               System.out.println(e);
+           }
            singleLock.writeLock().unlock();
        }
     }
@@ -66,7 +71,11 @@ public class CountedValues {
             fourThreadLock.writeLock().lock();
             fourThreadCount.increment();
         }finally {
-
+            try {
+                syncQ.put("current value for four thread counter is "+getFourThreadCount());
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
             fourThreadLock.writeLock().unlock();
         }
     }
@@ -76,6 +85,11 @@ public class CountedValues {
            poolThreadLock.writeLock().lock();
            poolThreadCount++;
        }finally {
+           try {
+               syncQ.put("current value for thread pool counter is "+getPoolThreadCount());
+           } catch (InterruptedException e) {
+               System.out.println(e);
+           }
            poolThreadLock.writeLock().unlock();
 
        }

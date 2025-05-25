@@ -8,7 +8,7 @@ public class PdfThread implements Runnable {
     private final int numOfThreads;
     private final int currentThreadNum;
     private final CountedValues countedValues;
-    private CountDownLatch latch;
+    private CountDownLatch waitForFinish;
 
     public PdfThread(File folder, String type, CountedValues countedValues ){
         this.folder=folder;
@@ -24,23 +24,23 @@ public class PdfThread implements Runnable {
         this.type=type;
         this.countedValues=countedValues;
     }
-    public PdfThread(File folder, int numOfThread, int currentThreadNum, String type, CountedValues countedValues,CountDownLatch latch){
+    public PdfThread(File folder, int numOfThread, int currentThreadNum, String type, CountedValues countedValues,CountDownLatch waitForFinish){
         this.folder=folder;
         this.currentThreadNum=currentThreadNum;
         this.numOfThreads=numOfThread;
         this.type=type;
         this.countedValues=countedValues;
-        this.latch=latch;
+        this.waitForFinish=waitForFinish;
     }
     @Override
     public void run(){
          int numberOfFiles=folder.listFiles().length;
          Offset offset= getStartEnd(numberOfFiles,numOfThreads,currentThreadNum);
          PdfCount.counter(folder,offset,type,countedValues);
-         if(type.equals("thread pool")){
-             latch.countDown();
-         }
 
+         if(type.equals("thread pool")){
+             waitForFinish.countDown();
+         }
         }
     // ChatGPT helped with the logic for this part.
     // we had the idea of having an object that has the start and end position for each thread to

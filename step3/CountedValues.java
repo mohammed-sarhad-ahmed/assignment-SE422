@@ -4,23 +4,18 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 public class CountedValues {
-    private volatile LongAdder singleThreadCount;
+    private volatile int singleThreadCount;
     private volatile LongAdder fourThreadCount;
-    private volatile LongAdder poolThreadCount;
+    private volatile int poolThreadCount;
     private final ReentrantReadWriteLock singleLock;
     private final ReentrantReadWriteLock fourThreadLock;
     private final ReentrantReadWriteLock poolThreadLock;
-    private final SynchronousQueue<String> syncQ;
 
-
-    public CountedValues(SynchronousQueue<String> syncQ) {
+    public CountedValues() {
         singleLock = new ReentrantReadWriteLock();
         fourThreadLock = new ReentrantReadWriteLock();
         poolThreadLock = new ReentrantReadWriteLock();
-        poolThreadCount=new LongAdder();
-        singleThreadCount=new LongAdder();
         fourThreadCount=new LongAdder();
-        this.syncQ=syncQ;
     }
 
     public Long getFourThreadCount() {
@@ -32,21 +27,20 @@ public class CountedValues {
         }
     }
 
-    public Long getPoolThreadCount() {
+    public int getPoolThreadCount() {
         try{
             poolThreadLock.readLock().lock();
-            return  poolThreadCount.sum();
+            return  poolThreadCount;
         }
         finally {
             poolThreadLock.readLock().unlock();
-
         }
     }
 
-    public Long getSingleThreadCount() {
+    public int getSingleThreadCount() {
         try {
             singleLock.readLock().lock();
-            return singleThreadCount.sum();
+            return singleThreadCount;
         }finally {
             singleLock.readLock().unlock();
         }
@@ -55,14 +49,8 @@ public class CountedValues {
     public void incrementSingleThreadCount() {
        try{
            singleLock.writeLock().lock();
-          singleThreadCount.increment();
+           singleThreadCount++;
        }finally {
-           try {
-               String value="the current value for the single thread is "+getSingleThreadCount();
-               syncQ.put(value);
-           }catch (Exception e){
-               System.out.println(e.getMessage());
-           }
            singleLock.writeLock().unlock();
        }
     }
@@ -72,12 +60,6 @@ public class CountedValues {
             fourThreadLock.writeLock().lock();
             fourThreadCount.increment();
         }finally {
-            try {
-                String value="the current value for the four threads is "+getFourThreadCount();
-                syncQ.put(value);
-            }catch (Exception e){
-                System.out.println(e.getMessage());
-            }
             fourThreadLock.writeLock().unlock();
         }
     }
@@ -85,14 +67,8 @@ public class CountedValues {
     public void incrementPoolThreadCount() {
        try{
            poolThreadLock.writeLock().lock();
-           poolThreadCount.increment();
+           poolThreadCount++;
        }finally {
-           try {
-               String value="the current value for the thread pool is "+getPoolThreadCount();
-               syncQ.put(value);
-           }catch (Exception e){
-               System.out.println(e.getMessage());
-           }
            poolThreadLock.writeLock().unlock();
 
        }
