@@ -7,7 +7,7 @@ public class CountedValues {
 
     //we only change the counter for the counter related to 4 threads
     private int singleThreadCount;
-    private LongAdder fourThreadCount;
+    private final LongAdder fourThreadCount;
     private volatile int poolThreadCount;
     private final ReentrantReadWriteLock singleLock;
     private final ReentrantReadWriteLock fourThreadLock;
@@ -58,7 +58,8 @@ public class CountedValues {
           singleThreadCount++;
        }finally {
            try {
-               syncQ.put("current value for single thread counter is "+getSingleThreadCount());
+               //we asked chatgpt "how to change int to string in java"
+               syncQ.put(Integer.toString(getSingleThreadCount()));
            } catch (InterruptedException e) {
                System.out.println(e);
            }
@@ -72,7 +73,8 @@ public class CountedValues {
             fourThreadCount.increment();
         }finally {
             try {
-                syncQ.put("current value for four thread counter is "+getFourThreadCount());
+                //we asked chatgpt "how to change long to string in java"
+                syncQ.put(Long.toString(getFourThreadCount()));
             } catch (InterruptedException e) {
                 System.out.println(e);
             }
