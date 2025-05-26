@@ -5,7 +5,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class PdfCount {
     // ChatGPT help us write the next two methods.
     // We refactored this code to make it simpler from the first assignment with the help of chatgpt
-    private static final ReentrantLock lock = new ReentrantLock(true);
     public static void counter(File folder, Offset offset, String type, CountedValues countedValues) {
         File[] files;
         files = folder.listFiles();
@@ -20,20 +19,19 @@ public class PdfCount {
     }
 
     private static void processFile(File file, String type, CountedValues countedValues) {
-        File[] children = null;
-        lock.lock();
-        try {
-            if (file.isDirectory()) {
-                children = file.listFiles();
-            } else if (file.getName().toLowerCase().endsWith(".pdf")) {
-                incrementByType(type, countedValues);
+        if (file.isDirectory()) {
+            File[] children = file.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    processFile(child, type, countedValues);
+                }
             }
-        } finally {
-            lock.unlock();
-        }
-        if (children != null) {
-            for (File f : children) {
-                processFile(f, type, countedValues);
+        } else if (file.getName().toLowerCase().endsWith(".pdf")) {
+            Resources.lock.lock();
+            try {
+                incrementByType(type, countedValues);
+            } finally {
+                Resources.lock.unlock();
             }
         }
     }
@@ -56,7 +54,6 @@ public class PdfCount {
                                 System.out.println(e.getMessage());
                             }
                         }
-
                     break;
             }
     }
