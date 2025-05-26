@@ -26,7 +26,6 @@ public class PdfCount {
 
     private static void processFile(File file, String type, CountedValues countedValues) {
         File[] children = null;
-
         lock.lock();
         try {
             if (file.isDirectory()) {
