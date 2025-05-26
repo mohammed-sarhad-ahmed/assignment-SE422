@@ -56,13 +56,13 @@ public class CountedValues {
        try{
            singleLock.writeLock().lock();
           singleThreadCount++;
-       }finally {
            try {
                //we asked chatgpt "how to change int to string in java"
                syncQ.put(Integer.toString(getSingleThreadCount()));
            } catch (InterruptedException e) {
                System.out.println(e);
            }
+       }finally {
            singleLock.writeLock().unlock();
        }
     }
@@ -71,13 +71,13 @@ public class CountedValues {
         try{
             fourThreadLock.writeLock().lock();
             fourThreadCount.increment();
-        }finally {
             try {
                 //we asked chatgpt "how to change long to string in java"
                 syncQ.put(Long.toString(getFourThreadCount()));
             } catch (InterruptedException e) {
                 System.out.println(e);
             }
+        }finally {
             fourThreadLock.writeLock().unlock();
         }
     }

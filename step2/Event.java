@@ -5,8 +5,6 @@ public class Event {
     private static volatile String activeThread="Single";
     private static final ReentrantReadWriteLock reentrantReadWriteLockIsFinish=new ReentrantReadWriteLock();
     private static final ReentrantReadWriteLock reentrantReadWriteLockActiveThread=new ReentrantReadWriteLock();
-    private static volatile Boolean isAvailable=false;
-    private static final ReentrantReadWriteLock ReentrantReadWriteLockIsAvailable=new ReentrantReadWriteLock();
     public static void changeIsFinished(){
         try {
             reentrantReadWriteLockIsFinish.writeLock().lock();
@@ -39,27 +37,6 @@ public class Event {
             return activeThread;
         }finally {
             reentrantReadWriteLockActiveThread.readLock().unlock();
-        }
-    }
-
-    public static Boolean getIsAvailable(){
-        try{
-            ReentrantReadWriteLockIsAvailable.readLock().lock();
-            return isAvailable;
-        }finally {
-            ReentrantReadWriteLockIsAvailable.readLock().unlock();
-
-        }
-    }
-
-    public static void changeIsAvailable(Boolean changeTo){
-        try{
-            ReentrantReadWriteLockIsAvailable.writeLock().lock();
-            isAvailable=changeTo;
-        }finally {
-            ReentrantReadWriteLockIsAvailable.writeLock().unlock();
-        }{
-
         }
     }
 

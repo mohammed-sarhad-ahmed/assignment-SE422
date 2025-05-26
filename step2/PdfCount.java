@@ -4,33 +4,45 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class PdfCount {
     // ChatGPT help us write the next two methods.
-    // The problem was that we didn’t know how to handle the case of a folder containing a subfolder with PDF files.
-    // we asked "How can we count the number of PDF files inside a folder.the folder might have subfolders with PDF files"
-    // The code ChatGPT provided needed some changes, which we made ourselves to adapt it to work with the offset object.
+    // We refactored this code to make it simpler from the first assignment with the help of chatgpt
+    private static final ReentrantLock lock = new ReentrantLock(true);
     public static void counter(File folder, Offset offset, String type, CountedValues countedValues) {
-        File[] files = folder.listFiles();
-        if (files == null) return;
-        for (int i = offset.getStart(); i <= offset.getEnd() && i < files.length; i++) {
-            File file = files[i];
-            if (file.isDirectory()) {
-                counter(file, type, countedValues);
-            } else if (file.getName().toLowerCase().endsWith(".pdf")) {
-                incrementByType(type, countedValues);
-            }
+        File[] files;
+        lock.lock();
+        try {
+            files = folder.listFiles();
+        } finally {
+            lock.unlock();
         }
-    }
-    private static void counter(File folder, String type, CountedValues countedValues) {
-        File[] files = folder.listFiles();
         if (files == null) return;
-        for (File file : files) {
-            if (file.isDirectory()) {
-                counter(file, type, countedValues); // recurse again
-            } else if (file.getName().toLowerCase().endsWith(".pdf")) {
-                incrementByType(type, countedValues);
-            }
+
+        int start = offset != null ? offset.getStart() : 0;
+        int end = offset != null ? Math.min(offset.getEnd(), files.length - 1) : files.length - 1;
+
+        for (int i = start; i <= end; i++) {
+            processFile(files[i], type, countedValues);
         }
     }
 
+    private static void processFile(File file, String type, CountedValues countedValues) {
+        File[] children = null;
+
+        lock.lock();
+        try {
+            if (file.isDirectory()) {
+                children = file.listFiles();
+            } else if (file.getName().toLowerCase().endsWith(".pdf")) {
+                incrementByType(type, countedValues);
+            }
+        } finally {
+            lock.unlock();
+        }
+        if (children != null) {
+            for (File f : children) {
+                processFile(f, type, countedValues);
+            }
+        }
+    }
 
     private static void incrementByType(String type, CountedValues countedValues) {
             switch (type.toLowerCase()) {
