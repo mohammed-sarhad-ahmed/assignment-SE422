@@ -8,12 +8,7 @@ public class PdfCount {
     private static final ReentrantLock lock = new ReentrantLock(true);
     public static void counter(File folder, Offset offset, String type, CountedValues countedValues) {
         File[] files;
-        lock.lock();
-        try {
-            files = folder.listFiles();
-        } finally {
-            lock.unlock();
-        }
+        files = folder.listFiles();
         if (files == null) return;
 
         int start = offset != null ? offset.getStart() : 0;
