@@ -52,8 +52,6 @@ public class PdfCount {
                     countedValues.incrementFourThreadCount();
                     break;
                 case "thread pool":
-                    try {
-                        Resources.lock.lock();
                         countedValues.incrementPoolThreadCount();
                         synchronized(Resources.tracker) {
                             Resources.tracker.notify();
@@ -63,9 +61,7 @@ public class PdfCount {
                                 System.out.println(e.getMessage());
                             }
                         }
-                    }finally {
-                        Resources.lock.unlock();
-                    }
+
                     break;
             }
     }
