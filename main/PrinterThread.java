@@ -25,11 +25,13 @@ public class PrinterThread extends Thread {
                     System.out.println("something went wrong");
                 }
             }
-            while (!Event.getIsFinished()){
+            while (!Event.getIsFinished()) {
                 synchronized (Resources.tracker) {
-                    Resources.tracker.wait();
-                    if(Event.getActiveThread().equals("done")) break;
-                    System.out.println("The current value for the thread pool is "+ countedValues.getPoolThreadCount());
+                    while (!Resources.poolTaskReady && !Event.getActiveThread().equals("done")) {
+                        Resources.tracker.wait();
+                    }
+                    System.out.println("The current value for the thread pool is " + countedValues.getPoolThreadCount());
+                    Resources.poolTaskReady = false;
                     Resources.tracker.notifyAll();
                 }
             }

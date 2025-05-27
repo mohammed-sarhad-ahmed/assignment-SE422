@@ -3,6 +3,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class PdfCount {
+    public static final ReentrantLock lock = new ReentrantLock(true);
     // ChatGPT help us write the next two methods.
     // We refactored this code to make it simpler from the first assignment with the help of chatgpt
     public static void counter(File folder, Offset offset, String type, CountedValues countedValues) {
@@ -27,11 +28,11 @@ public class PdfCount {
                 }
             }
         } else if (file.getName().toLowerCase().endsWith(".pdf")) {
-            Resources.lock.lock();
+            lock.lock();
             try {
                 incrementByType(type, countedValues);
             } finally {
-                Resources.lock.unlock();
+                lock.unlock();
             }
         }
     }
@@ -45,15 +46,20 @@ public class PdfCount {
                     countedValues.incrementFourThreadCount();
                     break;
                 case "thread pool":
-                        countedValues.incrementPoolThreadCount();
-                        synchronized(Resources.tracker) {
-                            Resources.tracker.notify();
-                            try {
+                    countedValues.incrementPoolThreadCount();
+
+                    synchronized(Resources.tracker) {
+                        Resources.poolTaskReady = true;
+                        Resources.tracker.notifyAll();
+                        try {
+                            while (Resources.poolTaskReady) {
                                 Resources.tracker.wait();
-                            }catch (Exception e){
-                                System.out.println(e.getMessage());
                             }
+                        } catch (InterruptedException e) {
+                            System.out.println(e.getMessage());
                         }
+                    }
+
                     break;
             }
     }
