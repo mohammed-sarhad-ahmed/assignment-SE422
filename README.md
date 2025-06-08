@@ -1,8 +1,20 @@
 # Concurrent and Parallel Programming in Java – Course Assignment
 
 ## 📘 Overview
-This repository contains our course assignment for the subject Concurrent and Parallel Programming, where we  implement and demonstrate key concepts of multithreading and concurrency control in Java. The goal is to explore how parallelism can improve performance and responsiveness in Java applications.
-The code recursively goes through a folder and counts the number of PDF files.
+Project: Parallel PDF File Counter
+
+This repository contains our course assignment for Concurrent and Parallel Programming. The project focuses on the practical implementation of multithreading and concurrency control using Java.
+
+Functionality:
+The core functionality of the program is to recursively traverse a folder structure and count the number of PDF files. This task is parallelized using Java's concurrency features to improve performance, especially on systems with multiple CPU cores.
+
+Objectives:
+
+Demonstrate the use of Java threads, executors, and synchronization techniques.
+
+Show how parallelism can significantly reduce execution time for I/O-bound tasks like directory traversal.
+
+Provide a clean, well-documented example of concurrency in a real-world file system operation.
 
 ## ⚙️ Technologies Used
 - Java (JDK 21)  
