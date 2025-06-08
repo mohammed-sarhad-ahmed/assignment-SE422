@@ -15,7 +15,7 @@ public class PrinterThread extends Thread {
             while (Event.getActiveThread().equals("Single") ||Event.getActiveThread().equals("Four Thread") ) {
                 try {
                     String value = synchronousQueue.take();
-                    if (value.equals("done")) break;
+                    if (value.equals("Reached Thread pool")) break;
                     if (Event.getActiveThread().equals("Single")){
                         System.out.println("the current value for single thread counter "+value);
                     }else if(Event.getActiveThread().equals("Four Thread")){
@@ -25,15 +25,15 @@ public class PrinterThread extends Thread {
                     System.out.println("something went wrong");
                 }
             }
-            while (!Event.getIsFinished()) {
                 synchronized (Resources.tracker) {
-                    while (!Resources.poolTaskReady && !Event.getActiveThread().equals("done")) {
+                    while (!Resources.poolTaskReady) {
                         Resources.tracker.wait();
+                        if (Event.getActiveThread().equals("done"))break;
+                        System.out.println("The current value for the thread pool is " + countedValues.getPoolThreadCount());
+                        Resources.poolTaskReady = false;
+                        Resources.tracker.notifyAll();
                     }
-                    System.out.println("The current value for the thread pool is " + countedValues.getPoolThreadCount());
-                    Resources.poolTaskReady = false;
-                    Resources.tracker.notifyAll();
-                }
+
             }
             System.out.println("final count...");
             System.out.println("the final value for the single thread counter is "+countedValues.getSingleThreadCount());
