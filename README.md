@@ -26,8 +26,8 @@ The assignment includes the following core concurrency and parallelism features 
 - Synchronized Queue
 
 ### Thread Pools and Executors
-- ExecutorService, ScheduledExecutorService  
-- Fixed and cached thread pools  
+- ExecutorService
+- thread pools  
 - Task scheduling and shutdown
 
 ### Concurrency Utilities
